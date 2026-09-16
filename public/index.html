@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Absensi</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body class="center">
+  <div class="card login-card">
+    <h1>📷 Absensi</h1>
+    <p class="muted">Masuk untuk absen</p>
+    <form id="f">
+      <input id="u" placeholder="Username" autocomplete="username" required>
+      <input id="p" type="password" placeholder="Password" autocomplete="current-password" required>
+      <button type="submit" class="btn primary">Masuk</button>
+    </form>
+    <p id="err" class="error"></p>
+  </div>
+<script>
+document.getElementById('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const err = document.getElementById('err');
+  err.textContent = '';
+  try {
+    const r = await fetch('/api/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u.value, password: p.value })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Login gagal');
+    location.href = d.isAdmin ? '/admin' : '/absen';
+  } catch (ex) { err.textContent = ex.message; }
+});
+</script>
+</body>
+</html>

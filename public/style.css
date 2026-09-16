@@ -1,0 +1,82 @@
+:root {
+  --bg: #f0f4f8; --card: #fff; --txt: #1a2b3c; --muted: #6b7a8c;
+  --primary: #0a7d4f; --primary-d: #08603c; --danger: #c0392b; --warn: #b7791f;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg); color: var(--txt);
+  min-height: 100vh; padding: 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+body.center { display: flex; align-items: center; justify-content: center; }
+.card {
+  background: var(--card); border-radius: 16px; padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.08); max-width: 480px; width: 100%;
+  margin: 0 auto 16px;
+}
+h1 { font-size: 1.5rem; margin-bottom: 4px; }
+h2 { font-size: 1.1rem; margin-bottom: 12px; }
+.muted { color: var(--muted); font-size: .9rem; }
+.error { color: var(--danger); font-size: .9rem; margin-top: 10px; min-height: 1.2em; }
+.ok { color: var(--primary); font-size: .95rem; margin-top: 10px; min-height: 1.2em; }
+
+input, select {
+  width: 100%; padding: 14px; margin: 6px 0; font-size: 1rem;
+  border: 1.5px solid #cbd5e0; border-radius: 10px; background: #fff;
+}
+.btn {
+  display: block; width: 100%; padding: 16px; margin: 10px 0;
+  font-size: 1.1rem; font-weight: 700; color: #fff;
+  border: none; border-radius: 12px; cursor: pointer;
+}
+.btn.primary { background: var(--primary); }
+.btn.primary:active { background: var(--primary-d); }
+.btn.danger { background: var(--danger); }
+.btn.small { width: auto; display: inline-block; padding: 8px 14px; font-size: .85rem; margin: 0; }
+.btn:disabled { opacity: .5; cursor: wait; }
+.btn.ghost { background: #e2e8f0; color: var(--txt); }
+
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.topbar .name { font-weight: 700; }
+
+/* kamera */
+#camModal {
+  position: fixed; inset: 0; background: rgba(0,0,0,.85);
+  display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 50;
+}
+#camModal.show { display: flex; }
+#camModal video, #camModal img.snap {
+  width: min(90vw, 400px); border-radius: 16px; background: #000;
+}
+#count {
+  color: #fff; font-size: 4rem; font-weight: 800; margin: 16px;
+  text-shadow: 0 2px 8px rgba(0,0,0,.6);
+}
+#camStatus { color: #fff; margin: 12px; text-align: center; }
+
+/* daftar absensi */
+.rec {
+  display: flex; gap: 12px; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid #e2e8f0;
+}
+.rec img { width: 56px; height: 56px; object-fit: cover; border-radius: 10px; background: #ddd; }
+.rec .info { flex: 1; min-width: 0; }
+.rec .rname { font-weight: 700; }
+.rec .rtime { font-size: .85rem; color: var(--muted); }
+.badge {
+  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  font-size: .75rem; font-weight: 700; color: #fff;
+}
+.badge.in { background: var(--primary); }
+.badge.out { background: var(--warn); }
+.badge.miss { background: #94a3b8; }
+.maplink { font-size: .8rem; color: #2563eb; text-decoration: none; }
+.empty { text-align: center; color: var(--muted); padding: 24px 0; }
+
+.filters { display: flex; gap: 8px; margin-bottom: 12px; }
+.filters input[type=date] { margin: 0; flex: 1; padding: 10px; font-size: .9rem; }
+
+.emp-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #e2e8f0; }
+.emp-row .info { flex: 1; }
+.emp-row .uname { font-size: .8rem; color: var(--muted); }

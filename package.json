@@ -1,0 +1,13 @@
+{
+  "name": "absensi-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Absensi karyawan: selfie + lokasi otomatis",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

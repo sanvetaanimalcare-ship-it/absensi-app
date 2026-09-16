@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Absen</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="card">
+    <div class="topbar">
+      <span class="name" id="who">...</span>
+      <button class="btn small ghost" onclick="logout()">Keluar</button>
+    </div>
+    <h2 id="clock">--:--:--</h2>
+    <p class="muted" id="status">Memuat status...</p>
+    <button id="btnIn" class="btn primary" style="display:none">🟢 ABSEN MASUK</button>
+    <button id="btnOut" class="btn danger" style="display:none">🔴 ABSEN PULANG</button>
+    <p id="msg" class="error"></p>
+  </div>
+
+  <!-- modal kamera -->
+  <div id="camModal">
+    <video id="vid" autoplay playsinline muted></video>
+    <img id="snap" class="snap" style="display:none" alt="selfie">
+    <div id="count"></div>
+    <div id="camStatus">Menyiapkan kamera & lokasi...</div>
+  </div>
+
+<script>
+let me = null;
+const $ = id => document.getElementById(id);
+const msg = $('msg');
+
+// jam
+setInterval(() => {
+  $('clock').textContent = new Date().toLocaleTimeString('id-ID') + ' · ' +
+    new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+}, 500);
+
+function logout() { fetch('/api/logout', { method: 'POST' }).then(() => location.href = '/'); }
+
+async function init() {
+  const r = await fetch('/api/me');
+  if (r.status === 401) return location.href = '/';
+  me = await r.json();
+  $('who').textContent = '👋 ' + me.name;
+  refresh();
+}
+
+async function refresh() {
+  const today = await (await fetch('/api/me/today')).json();
+  const hasIn = today.some(r => r.type === 'in');
+  const hasOut = today.some(r => r.type === 'out');
+  $('btnIn').style.display = hasIn ? 'none' : 'block';
+  $('btnOut').style.display = (hasIn && !hasOut) ? 'block' : 'none';
+  $('status').textContent = hasOut ? '✅ Absensi hari ini lengkap. Sampai besok!'
+    : hasIn ? 'Anda sudah absen masuk. Jangan lupa absen pulang.'
+    : 'Silakan absen masuk untuk memulai hari.';
+}
+
+// ---------- proses absen ----------
+async function punch(type) {
+  msg.textContent = '';
+  $('camModal').classList.add('show');
+  $('snap').style.display = 'none'; $('vid').style.display = 'block';
+  $('count').textContent = ''; $('camStatus').textContent = 'Meminta izin lokasi...';
+  const btn = type === 'in' ? $('btnIn') : $('btnOut');
+  btn.disabled = true;
+
+  try {
+    // 1. lokasi
+    const pos = await new Promise((res, rej) =>
+      navigator.geolocation.getCurrentPosition(res, rej,
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 30000 }));
+    $('camStatus').textContent = 'Lokasi OK ✓ — menyiapkan kamera...';
+
+    // 2. kamera depan
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 720 } }, audio: false });
+    $('vid').srcObject = stream;
+
+    // 3. countdown lalu jepret otomatis
+    for (let c = 3; c > 0; c--) {
+      $('count').textContent = c;
+      await new Promise(r => setTimeout(r, 1000));
+    }
+    $('count').textContent = '📸';
+
+    const canvas = document.createElement('canvas');
+    const v = $('vid');
+    canvas.width = v.videoWidth; canvas.height = v.videoHeight;
+    canvas.getContext('2d').drawImage(v, 0, 0);
+    const photo = canvas.toDataURL('image/jpeg', 0.75);
+    stream.getTracks().forEach(t => t.stop());
+    $('vid').style.display = 'none';
+    const img = $('snap'); img.src = photo; img.style.display = 'block';
+    $('camStatus').textContent = 'Mengirim...';
+
+    // 4. kirim
+    const r = await fetch('/api/punch', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type,
+        lat: pos.coords.latitude, lng: pos.coords.longitude,
+        acc: Math.round(pos.coords.accuracy), photo
+      })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Gagal absen');
+
+    $('camStatus').textContent = type === 'in' ? '✅ Absen masuk tercatat!' : '✅ Absen pulang tercatat!';
+    setTimeout(() => { $('camModal').classList.remove('show'); refresh(); }, 1500);
+  } catch (ex) {
+    let m = ex.message;
+    if (ex.code === 1) m = 'Izin lokasi ditolak — aktifkan lokasi untuk absen';
+    if (ex.name === 'NotAllowedError') m = 'Izin kamera ditolak — aktifkan kamera untuk absen';
+    msg.textContent = '❌ ' + m;
+    document.querySelectorAll('#camModal video, #camModal img').forEach(el => el.srcObject && el.srcObject.getTracks().forEach(t => t.stop()));
+    $('camModal').classList.remove('show');
+  } finally { btn.disabled = false; }
+}
+
+$('btnIn').onclick = () => punch('in');
+$('btnOut').onclick = () => punch('out');
+init();
+</script>
+</body>
+</html>
