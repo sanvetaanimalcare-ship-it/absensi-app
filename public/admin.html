@@ -26,6 +26,15 @@
     <h2>👥 Karyawan</h2>
     <div id="emps"><p class="empty">Memuat...</p></div>
     <details style="margin-top:12px">
+      <summary class="muted" style="cursor:pointer">🔑 Ganti password admin</summary>
+      <form id="fPw" style="margin-top:10px">
+        <input id="pwOld" type="password" placeholder="Password lama" required>
+        <input id="pwNew" type="password" placeholder="Password baru (min 6)" required>
+        <button class="btn primary">Ganti Password</button>
+      </form>
+    </details>
+
+    <details style="margin-top:12px">
       <summary class="muted" style="cursor:pointer">+ Tambah karyawan</summary>
       <form id="fEmp" style="margin-top:10px">
         <input id="nName" placeholder="Nama lengkap" required>
@@ -99,6 +108,16 @@ $('fEmp').addEventListener('submit', async e => {
   const d = await r.json();
   alert(r.ok ? 'Karyawan ditambahkan ✓' : (d.error || 'Gagal'));
   if (r.ok) { fEmp.reset(); loadEmps(); }
+});
+
+$('fPw').addEventListener('submit', async e => {
+  e.preventDefault();
+  const r = await fetch('/api/me/password', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ oldPassword: pwOld.value, newPassword: pwNew.value })
+  });
+  alert(r.ok ? 'Password admin diganti ✓' : (await r.json()).error);
+  if (r.ok) fPw.reset();
 });
 
 async function delEmp(id, name) {
